@@ -1,0 +1,165 @@
+
+
+●paypalダッシュボードページ●
+https://developer.paypal.com/dashboard/
+
+●laravel-paypalライブラリ●
+https://github.com/srmklive/laravel-paypal
+
+下記URLを開き、インストールをする
+https://srmklive.github.io/laravel-paypal/docs.html
+
+インストールコマンド
+composer require srmklive/paypal:~3.0
+
+php artisan vendor:publish --provider "Srmklive\PayPal\Providers\PayPalServiceProvider"
+
+下記コマンドでコントローラー新規作成
+php artisan make:controller Gateways/PaypalController
+
+
+●ダッシュボードの使用方法●
+
+決済する際のダミーアカウント情報
+HOME ⇒ sandox accountの@personal.example.comのアカウントを選択
+
+EmailとPasswordをLoginページにはりつけ、決済を行う
+
+◆.envの編集◆
+
+ディレクトリ
+.env
+
+・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・
+
+#PayPal API Mode
+# Values: sandbox or live (Default: live)
+PAYPAL_MODE=sandbox
+
+#PayPal Setting & API Credentials - sandbox
+PAYPAL_SANDBOX_CLIENT_ID=AVnkdDbYVJDJs-kT_BeODj08_DTDudSP0u5M_861r7C45KUT9yTyVWAXXSILtd6wT7OZ9bL8nK4PDlm4
+PAYPAL_SANDBOX_CLIENT_SECRET=EIgumL6NwytMa180Nre7OqYm2iI9-7C283qj67YCZQBKVnTBnTELnR3SmN2XiB-zLuSEBnUAA7nTW6v7
+
+#PayPal Setting & API Credentials - live
+# PAYPAL_LIVE_CLIENT_ID=
+# PAYPAL_LIVE_CLIENT_SECRET=
+
+★コード解説★
+API Credentials⇒undefinedよりAPI情報を取得している
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+◆ルートの編集◆
+
+ディレクトリ
+\routes\web.php
+
+・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・
+
+Route::post('paypal/payment', [PaypalController::class, 'payment'])->name('paypal.payment');
+
+Route::get('paypal/success', [PaypalController::class, 'success'])->name('paypal.success');
+Route::get('paypal/cancel', [PaypalController::class, 'cancel'])->name('paypal.cancel');
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+◆ビューの編集(遷移元)◆
+
+ディレクトリ
+\resources\views\welcome.blade.php
+
+・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・
+
+  <!-- paypel決済 -->
+  <form action="{{route('paypal.payment')}}" method="POST">
+    @csrf
+    <input type="hidden" value="40" name="price">
+    <button type="submit" class="btn btn-outline-dark flex-shrink-0" type="button">
+      <i class="bi-cart-fill me-1"></i>
+      Buy With Paypal
+    </button>
+  </form>
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+◆コントローラーの編集◆
+
+ディレクトリ
+
+
+・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・
+
+  public function payment(Request $request)
+  {
+
+    $provider = new PayPalClient;
+
+    $provider->setApiCredentials(config('paypal'));
+
+    $paypalToken = $provider->getAccessToken();
+
+    $response = $provider->createOrder([
+      "intent" => "CAPTURE",
+      "application_context" => [
+        "return_url" => route('paypal.success'),
+        "cancel_url" => route('paypal.cancel'),
+      ],
+      "purchase_units" => [
+        [
+          "amount" => [
+            // 通貨を選択する
+            "currency_code" => "USD",
+
+            // formタグ内に記載したinputタグのデータを受け取る
+            "value" => $request->price
+          ]
+        ]
+      ]
+    ]);
+
+    // dd($response);
+
+    // idがあり、且つNull出ない場合の処理
+    if (isset($response['id']) && $response['id'] != null) {
+
+      // $responseのlinksのデータを$linkとし、foreachで出力
+      foreach ($response['links'] as $link) {
+
+        if ($link['rel'] === 'approve') {
+          return redirect()->away($link['href']);
+        }
+      }
+
+      // 承認された値がない場合の処理
+      // paypal.cancelにリダイレクトさせる
+    } else {
+      return redirect()->route('paypal.cancel');
+    }
+  }
+
+  public function success(Request $request)
+  {
+    $provider = new PayPalClient;
+
+    $provider->setApiCredentials(config('paypal'));
+
+    $paypalToken = $provider->getAccessToken();
+
+    $response = $provider->capturePaymentOrder($request->token);
+
+    if (isset($response['status']) && $response['status'] == 'COMPLETED') {
+      return 'Paid Successfully!';
+    }
+
+    return redirect()->route('paypal.cancel');
+  }
+
+  public function cancel()
+  {
+    return 'Paymnet faild';
+  }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
