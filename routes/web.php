@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Gateways\PaypalController;
+use App\Http\Controllers\Gateways\RazorpayController;
 
 /*
 |--------------------------------------------------------------------------
@@ -27,3 +28,7 @@ Route::get('paypal/success', [PaypalController::class, 'success'])
 
 Route::get('paypal/cancel', [PaypalController::class, 'cancel'])
   ->name('paypal.cancel');
+
+// razorpay決済
+Route::post('razorpay/payment', [RazorpayController::class, 'payment'])
+  ->name('razorpay.payment');
