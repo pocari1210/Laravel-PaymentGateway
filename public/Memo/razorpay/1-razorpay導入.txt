@@ -1,0 +1,109 @@
+
+
+●razorpay Github●
+https://github.com/razorpay/razorpay-php
+
+インストールコマンド
+composer require razorpay/razorpay:2.*
+
+下記コマンドでコントローラーファイル新規作成
+php artisan make:controller Gateways/RazorpayController
+
+
+◆.envの設定◆
+
+ディレクトリ
+.env
+
+・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・
+
+# RAZORPAY
+RAZOR_KEY=rzp_test_CsGDR1AhkPbndZ
+RAZOR_SECRET=mf0s7H19U1bEgMSjMzLu5AjE
+
+◆コード解説◆
+
+APIキーの確認方法
+ダッシュボードにログインし、左側メニューの「Account & Settings」を選択
+Website and app settingsメニューのAPI keysをクリック
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+◆configの設定◆
+
+ディレクトリ
+\config\razorpay.php
+
+・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・
+
+<?php
+
+return [
+  'key' => env('RAZOR_KEY'),
+  'secret' => env('RAZOR_SECRET')
+];
+
+★コード解説★
+フォルダから手動でファイルを新規作成
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+◆ルートの編集◆
+
+ディレクトリ
+\routes\web.php
+
+・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・
+
+// razorpay決済
+Route::post('razorpay/payment', [RazorpayController::class, 'payment'])
+  ->name('razorpay.payment');
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+◆ビューの編集(遷移元)◆
+
+ディレクトリ
+
+・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・
+
+<div class="col-md-4 my-2">
+   <form action="{{route('razorpay.payment')}}" method="POST">
+      @csrf
+      <script src="https://checkout.razorpay.com/v1/checkout.js"
+
+       // \config\razorpay.phpのkeyのデータを取得
+       data-key="{{config('razorpay.key')}}"
+
+       // 支払いの合計金額
+       data-amount="{{ 40 * 100}}"
+       data-buttontext="Pay With Razorpay"
+       data-name="test payment"
+       data-description="Payment"
+       data-prefill.name="user"
+       data-prefill.email="user@gmail.com"
+       data-theme.color="#ff7529">
+      </script>
+    </form>
+</div>
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+◆コントローラーの編集◆
+
+ディレクトリ
+
+
+・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・
+
+
+
+
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
