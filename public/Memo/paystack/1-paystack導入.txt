@@ -1,0 +1,118 @@
+
+●paystack - ダッシュボードページ●
+https://dashboard.paystack.com/#/login
+
+下記コマンドでコントローラー新規作成
+php artisan make:controller Gateways/PaystackController
+
+◆.envの編集◆
+
+ディレクトリ
+.env
+
+・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・
+
+# PAYSTACK
+PAYSTACK_PUBLIC_KEY=pk_test_f451d01ba1dbcacec6da4fb45f643d7bf2d7e68b
+PAYSTACK_SECRET_KEY=sk_test_58f946125b3d64df942884470d4310b891d80850
+
+★コード解説★
+paystackのdashboardを開き、
+Settings ⇒ API Keys & Webhooksのページに遷移し、
+Test Secret KeyとTest Public Keyをコピペしている
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+◆configの編集◆
+
+ディレクトリ
+\config\paystack.php
+
+・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・
+
+<?php
+
+return [
+  'public_key' => env('PAYSTACK_PUBLIC_KEY'),
+  'secret_key' => env('PAYSTACK_SECRET_KEY'),
+];
+
+// .envに記載したKEYを読み込んでいる
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+◆ルートの編集◆
+
+ディレクトリ
+\routes\web.php
+
+・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・
+
+// paystack決済
+Route::get('paystack/redirect', [PaystackController::class, 'paystackRedirect'])
+  ->name('paystack.redirect');
+
+Route::get('paystack/callback', [PaystackController::class, 'verifyTransaction'])
+  ->name('paystack.callback');
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+◆ビューの編集(遷移元)◆
+
+ディレクトリ
+\resources\views\welcome.blade.php
+
+・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・
+
+  <div class="col-md-4 my-2">
+    <a href="{{route('paystack.redirect')}}" type="submit" class="btn btn-outline-dark flex-shrink-0" type="button">
+      <i class="bi-cart-fill me-1"></i>
+      Buy With Paystack
+    </a>
+  </div>
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+◆コントローラーの編集◆
+
+ディレクトリ
+\app\Http\Controllers\Gateways\PaystackController.php
+
+・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・
+
+  public function paystackRedirect()
+  {
+    return view('gateways.paystack-redirect');
+  }
+
+  public function verifyTransaction(Request $request)
+  {
+
+    // formから来たデータの中身を確認
+    // dd($request->all());
+
+    // formからきたreferenceのデータを取得
+    $reference = $request->reference;
+
+    // config\paystack.phpからデータを取得している
+    $secret_key = config('paystack.secret_key');
+
+    $response = Http::withHeaders([
+      'Authorization' => 'Bearer ' . $secret_key
+    ])->get("https://api.paystack.co/transaction/verify/$reference");
+
+    // $responseをjson_decode関数で配列にしている
+    $response_body = json_decode($response);
+
+    if ($response_body->status == true) {
+      return 'Payment success';
+    } else {
+      return 'Payment fail';
+    }
+  }
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////

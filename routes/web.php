@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Gateways\PaypalController;
 use App\Http\Controllers\Gateways\RazorpayController;
 use App\Http\Controllers\Gateways\MollieController;
+use App\Http\Controllers\Gateways\PaystackController;
 
 /*
 |--------------------------------------------------------------------------
@@ -40,3 +41,10 @@ Route::post('mollie/payment', [MollieController::class, 'payment'])
 
 Route::get('mollie/success', [MollieController::class, 'success'])
   ->name('mollie.success');
+
+// paystack決済
+Route::get('paystack/redirect', [PaystackController::class, 'paystackRedirect'])
+  ->name('paystack.redirect');
+
+Route::get('paystack/callback', [PaystackController::class, 'verifyTransaction'])
+  ->name('paystack.callback');
