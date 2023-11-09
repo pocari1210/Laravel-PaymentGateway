@@ -1,0 +1,140 @@
+
+1-mollie決済導入
+
+●laravel-mollieライブラリ●
+
+下記URLを開き、インストールをする
+https://github.com/mollie/laravel-mollie
+
+インストールコマンド
+composer require mollie/laravel-mollie
+
+●mollie ダッシュボード●
+https://my.mollie.com/dashboard/org_18157219/onboarding
+
+下記コマンドでコントローラー新規作成
+php artisan make:controller Gateways/MollieController
+
+◆.envの編集◆
+
+ディレクトリ
+.env
+
+・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・
+
+# MOLLIE
+MOLLIE_KEY=test_GavEmHvt2EAdM6j7sp8FcRxNsNWRqz
+
+★コード解説★
+ダッシュボードを開き、
+左側ナビゲーションのDevelopersのAPI keysをひらき、
+Test API keyの中身をペーストしている
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+◆ルートの編集◆
+
+ディレクトリ
+\routes\web.php
+
+・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・
+
+use App\Http\Controllers\Gateways\MollieController;
+
+// mollie決済
+Route::post('mollie/payment', [MollieController::class, 'payment'])
+  ->name('mollie.payment');
+
+Route::get('mollie/success', [MollieController::class, 'success'])
+  ->name('mollie.success');
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+◆ビューの編集(遷移元)◆
+
+ディレクトリ
+\resources\views\welcome.blade.php
+
+・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・
+
+  <!-- Mollie決済 -->
+  <div class="col-md-4 my-2">
+    <form action="{{route('mollie.payment')}}" method="POST">
+      @csrf
+      <input type="hidden" name="price" value="40">
+      <button type="submit" class="btn btn-outline-dark flex-shrink-0">
+        <i class="bi-cart-fill me-1"></i>
+        Buy With Mollie
+      </button>
+    </form>
+  </div>
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+◆コントローラーの編集◆
+
+ディレクトリ
+\app\Http\Controllers\Gateways\MollieController.php
+
+・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・
+
+use Mollie\Laravel\Facades\Mollie;
+
+  public function payment(Request $request)
+  {
+
+    // formからきたtokenとpriceの中身を確認できる
+    // dd($request->all());
+
+    $payment = Mollie::api()->payments->create([
+      "amount" => [
+
+        // 通貨の設定(デフォルトでユーロ)
+        "currency" => "EUR",
+
+        // 第一引数にformからきたpriceを設定
+        "value" =>  number_format($request->price, 2, '.', '') // You must send the correct number of decimals, thus we enforce the use of strings
+      ],
+      "description" => "Order #12345",
+
+      // 処理が成功した後のリダイレクト先のURLを記述
+      "redirectUrl" => route('mollie.success'),
+
+      // "webhookUrl" => route('webhooks.mollie'),
+
+      // metadataの配列の中に注文されたid情報を記述されている
+      "metadata" => [
+        "order_id" => "12345",
+      ],
+    ]);
+
+    // dd($payment);
+
+    // 第二引数のformからきた$payment->idを
+    // 第一引数のmollie_idの変数に格納している
+    session()->put('mollie_id', $payment->id);
+
+    // redirect customer to Mollie checkout page
+    return redirect($payment->getCheckoutUrl(), 303);
+  }
+
+  public function success(Request $request)
+  {
+    $paymentId = session()->get('mollie_id');
+    $payment = Mollie::api()->payments->get($paymentId);
+
+    // statusがpaidになっていたらOK
+    // dd($payment);
+
+    // 処理の結果
+    if ($payment->isPaid()) {
+      return 'payment success';
+    } else {
+      return 'Payment not completed';
+    }
+  }
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////

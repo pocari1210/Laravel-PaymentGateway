@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Gateways\PaypalController;
 use App\Http\Controllers\Gateways\RazorpayController;
+use App\Http\Controllers\Gateways\MollieController;
 
 /*
 |--------------------------------------------------------------------------
@@ -32,3 +33,10 @@ Route::get('paypal/cancel', [PaypalController::class, 'cancel'])
 // razorpay決済
 Route::post('razorpay/payment', [RazorpayController::class, 'payment'])
   ->name('razorpay.payment');
+
+// mollie決済
+Route::post('mollie/payment', [MollieController::class, 'payment'])
+  ->name('mollie.payment');
+
+Route::get('mollie/success', [MollieController::class, 'success'])
+  ->name('mollie.success');

@@ -78,8 +78,10 @@
                 </button>
               </form>
             </div>
+
+            <!-- Mollie決済 -->
             <div class="col-md-4 my-2">
-              <form action="" method="POST">
+              <form action="{{route('mollie.payment')}}" method="POST">
                 @csrf
                 <input type="hidden" name="price" value="40">
                 <button type="submit" class="btn btn-outline-dark flex-shrink-0">
