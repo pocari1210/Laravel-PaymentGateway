@@ -1,0 +1,161 @@
+
+●2checkout公式ページ●
+https://www.2checkout.com/
+
+●2checkout github●
+https://github.com/2checkout/2checkout-php
+
+パッケージがないためgit cloneし、
+必要なコードをコピペする
+
+\vendor直下にgit cloneをした2checkout-php-sdkフォルダを
+コピペする
+
+下記コマンドでコントローラー新規作成
+php artisan make:controller Gateways/TwoCheckoutController
+
+
+
+◆composer.jsonの編集◆
+
+ディレクトリ
+\composer.json
+
+・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・
+
+  "autoload": {
+    "psr-4": {
+      "App\\": "app/",
+      "Database\\Factories\\": "database/factories/",
+      "Database\\Seeders\\": "database/seeders/"
+    },
+    "files": [
+      "vendor/2checkout-php-sdk/autoloader.php"
+    ]
+  },
+
+記述が完了したら、下記コマンドを実行する
+composer dump-autoload
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+◆.envの編集◆
+
+ディレクトリ
+.env
+
+・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・
+
+# TWOCHECKOUT
+TWO_CHECKOUT_SELLER_ID=254737584931
+TWO_CHECKOUT_SECRET_KEY='cUHvO8PQLyBfXMT0G)rz'
+TWO_CHECKOUT_JWT_EXPIRE_TIME=30
+TWO_CHECKOUT_CURL_VERIFY_SSL=1
+
+ダッシュボードを開き、Integrations  Webhooks & APIへ遷移
+TWO_CHECKOUT_SELLER_IDにMerchant Code,
+TWO_CHECKOUT_SECRET_KEYにSecret Keyを記述する
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+◆configの編集◆
+
+ディレクトリ
+\config\twocheckout.php
+
+・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・
+
+<?php
+
+return [
+  'sellerId'      => env('TWO_CHECKOUT_SELLER_ID'), // REQUIRED
+  'secretKey'     => env('TWO_CHECKOUT_SECRET_KEY'), // REQUIRED
+  'jwtExpireTime' => env('TWO_CHECKOUT_JWT_EXPIRE_TIME'),
+  'curlVerifySsl' => env('TWO_CHECKOUT_CURL_VERIFY_SSL')
+
+];
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+◆ルートの編集◆
+
+ディレクトリ
+\routes\web.php
+
+・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・
+
+use App\Http\Controllers\Gateways\TwoCheckoutController;
+
+// 2checkout決済
+Route::get('twocheckout/payment', [TwoCheckoutController::class, 'showFrom'])
+  ->name('twocheckout.payment');
+
+Route::post('twocheckout/handle-payment', [TwoCheckoutController::class, 'handlePayment'])
+  ->name('twocheckout.handle-payment');
+
+Route::get('twocheckout/success', [TwoCheckoutController::class, 'success'])
+  ->name('twocheckout.success');
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+◆ビューの編集(遷移元)◆
+
+ディレクトリ
+\resources\views\welcome.blade.php
+
+・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・
+
+  <div class="col-md-4 my-2">
+    <a href="{{route('twocheckout.payment')}}" type="submit" class="btn btn-outline-dark flex-shrink-0" type="button">
+      <i class="bi-cart-fill me-1"></i>
+      Buy With 2CO
+    </a>
+  </div>
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+◆ビューの編集(JSライブラリのimport)◆
+
+ディレクトリ
+\resources\views\layouts\layout.blade.php
+
+・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・
+
+<script type="text/javascript" src="https://2pay-js.2checkout.com/v1/2pay.js"></script>
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+◆コントローラーの編集◆
+
+ディレクトリ
+
+
+・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・
+
+
+
+
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+◆ビューの編集(遷移先)◆
+
+ディレクトリ
+\resources\views\gateways\twocheckout-form.blade.php
+
+・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・
+
+「2checkout test cards」とブラウザで検索し、
+カード情報を調べる
+
+https://verifone.cloud/docs/2checkout/Documentation/09Test_ordering_system/01Test_payment_methods
+
+/////////////////////////////////////////////////////////////////////////////////////////////////

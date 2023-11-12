@@ -5,6 +5,7 @@ use App\Http\Controllers\Gateways\PaypalController;
 use App\Http\Controllers\Gateways\RazorpayController;
 use App\Http\Controllers\Gateways\MollieController;
 use App\Http\Controllers\Gateways\PaystackController;
+use App\Http\Controllers\Gateways\TwoCheckoutController;
 use App\Http\Controllers\SslCommerzPaymentController;
 
 /*
@@ -61,3 +62,13 @@ Route::post('/success', [SslCommerzPaymentController::class, 'success']);
 Route::post('/fail', [SslCommerzPaymentController::class, 'fail']);
 Route::post('/cancel', [SslCommerzPaymentController::class, 'cancel']);
 //SSLCOMMERZ END
+
+// 2checkout決済
+Route::get('twocheckout/payment', [TwoCheckoutController::class, 'showFrom'])
+  ->name('twocheckout.payment');
+
+Route::post('twocheckout/handle-payment', [TwoCheckoutController::class, 'handlePayment'])
+  ->name('twocheckout.handle-payment');
+
+Route::get('twocheckout/success', [TwoCheckoutController::class, 'success'])
+  ->name('twocheckout.success');
