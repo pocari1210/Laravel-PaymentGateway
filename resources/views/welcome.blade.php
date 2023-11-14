@@ -61,8 +61,9 @@
                 </script>
               </form>
             </div>
+
             <div class="col-md-4 my-2">
-              <a href="" type="submit" class="btn btn-outline-dark flex-shrink-0" type="button">
+              <a href="{{route('twocheckout.payment')}}" type="submit" class="btn btn-outline-dark flex-shrink-0" type="button">
                 <i class="bi-cart-fill me-1"></i>
                 Buy With 2CO
               </a>
@@ -96,8 +97,9 @@
                 Buy With Paystack
               </a>
             </div>
+
             <div class="col-md-6 my-2">
-              <form action="" method="POST">
+              <form action="{{route('sslcommerz.pay')}}" method="POST">
                 @csrf
                 <button type="submit" class="btn btn-outline-dark flex-shrink-0">
                   <i class="bi-cart-fill me-1"></i>

@@ -1,0 +1,85 @@
+
+●sslcomers公式ページ●
+https://developer.sslcommerz.com/registration/
+
+●SSLCommerz-Laravelライブラリ●
+https://github.com/sslcommerz/SSLCommerz-Laravel
+
+※パッケージのインストールはない
+
+SslCommerzPaymentControllerをコピーし、
+\app\Http\Controllers配下にペーストする
+
+\app\Http\Middleware\VerifyCsrfToken.phpの中身を
+張り替える
+
+\app配下に\app\Libraryをコピペする
+
+\config配下に\config\sslcommerz.phpを新規作成し、
+中身をペーストする
+
+
+◆.envの編集◆
+
+ディレクトリ
+.env
+
+・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・
+
+# SLLCOMMERZ
+SSLCZ_STORE_ID=accom654fb376e0884
+SSLCZ_STORE_PASSWORD=accom654fb376e0884@ssl
+
+// 本番として使用する場合、falseに変更する
+SSLCZ_TESTMODE=true
+
+★コード解説★
+
+公式ページから登録されたメールアドレスに情報が送られてくるので、
+メールに記載のIDとPASSWORDを変数に格納する
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+◆ルートの編集◆
+
+ディレクトリ
+\routes\web.php
+
+・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・
+
+use App\Http\Controllers\SslCommerzPaymentController;
+
+// SslCommerzPayment決済
+
+// SSLCOMMERZ Start
+Route::post('/pay', [SslCommerzPaymentController::class, 'index'])
+  ->name('sslcommerz.pay');
+
+Route::post('/success', [SslCommerzPaymentController::class, 'success']);
+Route::post('/fail', [SslCommerzPaymentController::class, 'fail']);
+Route::post('/cancel', [SslCommerzPaymentController::class, 'cancel']);
+//SSLCOMMERZ END
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+◆ビューの編集(遷移元)◆
+
+ディレクトリ
+\resources\views\welcome.blade.php
+
+・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・
+
+  <div class="col-md-6 my-2">
+    <form action="{{route('sslcommerz.pay')}}" method="POST">
+      @csrf
+       type="submit" class="btn btn-outline-dark flex-shrink-0">
+        <i class="bi-cart-fill me-1"></i>
+        Buy With Ssscommerz
+      </>
+    </form>
+  </div>
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
